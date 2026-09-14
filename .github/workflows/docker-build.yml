@@ -41,5 +41,5 @@ jobs:
           context: .
 #         file: ./un_dossier/MonDockerfile.prod   # si nom et/ou emplacement ≠ de Dockerfile à la racine
           push: true
-          tags: ${{ id.meta.outputs.tags }}
-          labels: ${{ id.meta.outputs.labels }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
