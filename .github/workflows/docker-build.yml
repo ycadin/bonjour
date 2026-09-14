@@ -17,10 +17,10 @@ jobs:
 
     steps:
       - name: rapatriement du dépôt
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: connexion au dépôt de conteneurs
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -28,7 +28,7 @@ jobs:
 
       - name: extrait les metadonnées (tags, labels) pour Podman
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
@@ -36,7 +36,7 @@ jobs:
             type=sha,format=short
 
       - name: fabrique et pousse l'image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
 #         file: ./un_dossier/MonDockerfile.prod   # si nom et/ou emplacement ≠ de Dockerfile à la racine
