@@ -1,0 +1,45 @@
+name: Fabrique et pousse image Podman
+
+on:
+  push:
+    branches: [ "main" ]   # Déclenche le build à chaque push sur la branche main
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write   # Donne le droit d'écrire dans GitHub Packages
+
+    steps:
+      - name: rapatriement du dépôt
+        uses: actions/checkout@v4
+
+      - name: connexion au dépôt de conteneurs
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}   # Token automatique, rien à configurer !
+
+      - name: extrait les metadonnées (tags, labels) pour Podman
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=sha,format=short
+
+      - name: fabrique et pousse l'image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+#         file: ./un_dossier/MonDockerfile.prod   # si nom et/ou emplacement ≠ de Dockerfile à la racine
+          push: true
+          tags: ${{ id.meta.outputs.tags }}
+          labels: ${{ id.meta.outputs.labels }}
