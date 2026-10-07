@@ -1,5 +1,7 @@
 FROM python:alpine
 
+LABEL org.opencontainers.image.source="https://github.com/ycadin/bonjour"
+
 WORKDIR /usr/src/app
 
 COPY requirements.txt .
