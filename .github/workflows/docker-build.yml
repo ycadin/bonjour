@@ -26,7 +26,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}   # Token automatique, rien à configurer !
 
-      - name: extrait les metadonnées (tags, labels) pour Podman
+      - name: extrait les metadonnées (tags, labels) pour Docker
         id: meta
         uses: docker/metadata-action@v6
         with:
@@ -34,6 +34,7 @@ jobs:
           tags: |
             type=ref,event=branch
             type=sha,format=short
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
 
       - name: fabrique et pousse l'image
         uses: docker/build-push-action@v7
