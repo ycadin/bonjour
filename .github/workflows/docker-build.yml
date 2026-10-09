@@ -1,4 +1,4 @@
-name: Fabrique et pousse image Podman
+name: Fabrique et pousse image Docker
 
 on:
   push:
@@ -14,6 +14,7 @@ jobs:
     permissions:
       contents: read
       packages: write   # Donne le droit d'écrire dans GitHub Packages
+      issues: write     # pour l'émission de notifications
 
     steps:
       - name: rapatriement du dépôt
@@ -44,3 +45,26 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+# ajout d'une tentative de notification pour ce workflow particulier :
+      - name: Déclencher la notification (Création du ticket)
+        if: success() && (github.ref == 'refs/heads/main')
+        id: notify_issue
+        uses: imjohnbo/issue-bot@v3
+        with:
+          assignees: "${{ github.actor }}"
+          title: "🚀 Workflow terminé : Image bonjour:latest poussée"
+          body: |
+            Le workflow s'est terminé avec succès sur la branche main.
+            L'image Docker a été envoyée vers GHCR et sera visible d'ici quelques instants.
+            
+            _Ce ticket a été généré pour déclencher votre notification mobile et e-mail._
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Nettoyage (Fermeture immédiate du ticket)
+        if: success() && (github.ref == 'refs/heads/main')
+        uses: peter-evans/close-issue@v3
+        with:
+          issue-number: ${{ steps.notify_issue.outputs.number }}
+          comment: "Fermeture automatique du signal de notification."
