@@ -82,7 +82,8 @@ jobs:
             --body "Le workflow s'est terminé avec succès sur la branche main. L'image Docker a été envoyée vers GHCR et sera visible d'ici quelques instants." \
             --assignee "${{ github.actor }}")
           
-          echo "Ticket créé avec succès."
+          echo "Ticket créé. Attente de 15 secondes pour laisser le temps à la notification iOS d'arriver…"
+          sleep 15   # 👈 CETTE PAUSE permet à iOS de traiter le push avant la fermeture
 
           # 2. Fermeture immédiate du ticket créé pour nettoyer le projet
           gh issue close "$ISSUE_NUM" --comment "Fermeture automatique du signal de notification."
