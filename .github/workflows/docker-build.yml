@@ -47,24 +47,42 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
 # ajout d'une tentative de notification pour ce workflow particulier :
-      - name: Déclencher la notification (Création du ticket)
-        if: success() && (github.ref == 'refs/heads/main')
-        id: notify_issue
-        uses: imjohnbo/issue-bot@v3
-        with:
-          assignees: "${{ github.actor }}"
-          title: "🚀 Workflow terminé : Image bonjour:latest poussée"
-          body: |
-            Le workflow s'est terminé avec succès sur la branche main.
-            L'image Docker a été envoyée vers GHCR et sera visible d'ici quelques instants.
-            
-            _Ce ticket a été généré pour déclencher votre notification mobile et e-mail._
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    # Version 1, un souci de version de Node empêche la clôture de l'issue :
+    #  - name: Déclencher la notification (Création du ticket)
+    #    if: success() && (github.ref == 'refs/heads/main')
+    #    id: notify_issue
+    #    uses: imjohnbo/issue-bot@v3
+    #    with:
+    #      assignees: "${{ github.actor }}"
+    #      title: "🚀 Workflow terminé : Image bonjour:latest poussée"
+    #      body: |
+    #        Le workflow s'est terminé avec succès sur la branche main.
+    #        L'image Docker a été envoyée vers GHCR et sera visible d'ici quelques instants.
+    #        
+    #        _Ce ticket a été généré pour déclencher votre notification mobile et e-mail._
+    #    env:
+    #      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    #
+    #  - name: Nettoyage (Fermeture immédiate du ticket)
+    #    if: success() && (github.ref == 'refs/heads/main')
+    #    uses: peter-evans/close-issue@v3
+    #    with:
+    #      issue-number: ${{ steps.notify_issue.outputs.number }}
+    #      comment: "Fermeture automatique du signal de notification."
 
-      - name: Nettoyage (Fermeture immédiate du ticket)
+    # Version 2, qui évite le recours à Node :
+      - name: Déclencher la notification et fermeture immédiate
         if: success() && (github.ref == 'refs/heads/main')
-        uses: peter-evans/close-issue@v3
-        with:
-          issue-number: ${{ steps.notify_issue.outputs.number }}
-          comment: "Fermeture automatique du signal de notification."
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # 1. Création du ticket et récupération directe de son numéro
+          ISSUE_NUM=$(gh issue create \
+            --title "🚀 Workflow terminé : Image bonjour:latest poussée" \
+            --body "Le workflow s'est terminé avec succès sur la branche main. L'image Docker a été envoyée vers GHCR et sera visible d'ici quelques instants." \
+            --assignee "${{ github.actor }}")
+          
+          echo "Ticket créé avec succès."
+
+          # 2. Fermeture immédiate du ticket créé pour nettoyer le projet
+          gh issue close "$ISSUE_NUM" --comment "Fermeture automatique du signal de notification."
